@@ -6,7 +6,7 @@ import simplejson
 import time
 
 relayURI = "tcp://eddn.edcd.io:9500"
-outputFile = "data/commodities.jsonl"
+outputFile = "data/events.jsonl"
 
 
 def should_save(event) -> bool:
