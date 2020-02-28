@@ -1,3 +1,5 @@
+"""Data collector using EDDN to collect Elite: Dangerous events."""
+
 import zlib
 import zmq
 import simplejson
@@ -8,6 +10,7 @@ outputFile = "data/commodities.jsonl"
 
 
 def should_save(event) -> bool:
+    """Check whether the given event should be saved."""
     schema = event["$schemaRef"]
     if schema == "https://eddn.edcd.io/schemas/commodity/3":
         return True
@@ -16,6 +19,7 @@ def should_save(event) -> bool:
 
 
 def main():
+    """Connect to EDDN and save relevant events."""
     # initialize zeromq subscriber
     context = zmq.Context()
     subscriber = context.socket(zmq.SUB)
