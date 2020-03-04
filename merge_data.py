@@ -71,9 +71,9 @@ economy_names = [
 ]
 
 
-def parse_journal(json):
+def parse_journal(json: Dict) -> Dict:
     event = parse_common(json)
-    event["station_allegiance"] = json.pop("StationAllegiance")
+    event["station_allegiance"] = json.pop("StationAllegiance", "Independent")
 
     default_economies = {name: 0.0 for name in economy_names}
     economies = {
@@ -88,6 +88,8 @@ def parse_journal(json):
     event["station_government"] = json.pop("StationGovernment")
     event["station_type"] = json.pop("StationType")
     event["faction_state"] = json.pop("StationFaction").pop("FactionState")
+
+    return event
 
 
 def combine_eddn_events(file: str):
