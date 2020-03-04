@@ -30,7 +30,23 @@ def parse_common(json: Dict) -> Dict:
 def parse_commodity(json: Dict) -> Dict:
     event = parse_common(json)
 
-    event["commodities"] = json.pop("commodities")
+    event["commodities"] = [
+        {
+            "buy_price": c.pop("buyPrice"),
+            "demand": c.pop("demand"),
+            "demand_bracket": c.pop("demandBracket"),
+            "mean_price": c.pop("meanPrice"),
+            "name": c.pop("name"),
+            "sell_price": c.pop("sellPrice"),
+            "stock": c.pop("stock"),
+            "stock_bracket": c.pop("stockBracket"),
+        } for c in json.pop("commodities")
+    ]
+
+    # unused fields
+    json.pop("economies", None)
+    json.pop("prohibited", None)
+    json.pop("horizons", None)
 
     return event
 
@@ -44,7 +60,7 @@ def combine_eddn_events(file: str):
     journal = []
 
     with open(file) as f:
-        while (line := f.readline()) != "":
+        for line in f:
             json = simplejson.loads(line)
             schema, msg = json["$schemaRef"], json["message"]
 
