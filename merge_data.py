@@ -1,10 +1,11 @@
 """Merges data from the different datasets into one CSV file."""
 
 import gzip
-from typing import Generator, Dict, Tuple
-import simplejson
-from datetime import datetime
 import re
+from datetime import datetime
+from typing import Generator, Dict
+
+import simplejson
 
 # some timestamps include milliseconds, which are removed with this regex
 TS_MILLIS_RE = re.compile(r"\.\d+Z")
@@ -51,8 +52,42 @@ def parse_commodity(json: Dict) -> Dict:
     return event
 
 
+economy_names = [
+    "$economy_Agri",
+    "$economy_Colony",
+    "$economy_Extraction",
+    "$economy_HighTech",
+    "$economy_Industrial",
+    "$economy_Military",
+    "$economy_None",
+    "$economy_Refinery",
+    "$economy_Service",
+    "$economy_Terraforming",
+    "$economy_Tourism",
+    "$economy_Prison",
+    "$economy_Damaged",
+    "$economy_Rescue",
+    "$economy_Repair"
+]
+
+
 def parse_journal(json):
     event = parse_common(json)
+    event["station_allegiance"] = json.pop("StationAllegiance")
+
+    default_economies = {name: 0.0 for name in economy_names}
+    economies = {
+        economy_json.pop("Name"): float(economy_json.pop("Proportion"))
+        for economy_json in json.pop("StationEconomies")
+    }
+    event.update(default_economies)
+    event.update(economies)
+
+    # TODO: Station services
+
+    event["station_government"] = json.pop("StationGovernment")
+    event["station_type"] = json.pop("StationType")
+    event["faction_state"] = json.pop("StationFaction").pop("FactionState")
 
 
 def combine_eddn_events(file: str):
