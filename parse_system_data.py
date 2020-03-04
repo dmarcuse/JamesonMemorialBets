@@ -27,7 +27,7 @@ CSV_FILE = "data/systems_populated.csv"
 @dataclass
 class System:
     # General information
-    id: int
+    name: str
     security: str
     population: int
     stars: int
@@ -111,7 +111,7 @@ with open(CSV_FILE, "w") as csv_file:
                             continue
 
         system_info = System(
-            id=json_object["id"],
+            name=json_object["name"],
             security=json_object["security"],
             population=json_object["population"],
             stars=stars,
