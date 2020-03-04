@@ -27,8 +27,12 @@ def parse_common(json: Dict) -> Dict:
     }
 
 
-def parse_commodity(json):
+def parse_commodity(json: Dict) -> Dict:
     event = parse_common(json)
+
+    event["commodities"] = json.pop("commodities")
+
+    return event
 
 
 def parse_journal(json):
@@ -42,12 +46,15 @@ def combine_eddn_events(file: str):
     with open(file) as f:
         while (line := f.readline()) != "":
             json = simplejson.loads(line)
-            schema = json["$schemaRef"]
+            schema, msg = json["$schemaRef"], json["message"]
 
             if "commodity" in schema:
-                commodity.append(parse_commodity(json["message"]))
+                commodity.append(parse_commodity(msg))
             elif "journal" in schema:
-                journal.append(parse_journal(json["message"]))
+                journal.append(parse_journal(msg))
+
+            if len(msg) != 0:
+                raise ValueError(f"Extra fields! {json}")
 
     print(f"Read {len(commodity)} commodity and {len(journal)} journal events")
 
