@@ -1,10 +1,9 @@
 """Merges data from the different datasets into one CSV file."""
 
+import json
 import re
 from datetime import datetime
 from typing import Dict
-
-import simplejson
 
 # some timestamps include milliseconds, which are removed with this regex
 TS_MILLIS_RE = re.compile(r"\.\d+Z")
@@ -90,29 +89,42 @@ service_names = [
 ]
 
 
-def parse_journal(json: Dict) -> Dict:
-    event = parse_common(json)
+def parse_journal(json_event: Dict) -> Dict:
+    event = parse_common(json_event)
 
     # Miscellaneous station info
-    event["station_allegiance"] = json.pop("StationAllegiance", "Independent")
-    event["station_government"] = json.pop("StationGovernment")
-    event["station_type"] = json.pop("StationType")
-    event["faction_state"] = json.pop("StationFaction").pop("FactionState")
+    event["station_allegiance"] = json_event.pop("StationAllegiance", "Independent")
+    event["station_government"] = json_event.pop("StationGovernment")
+    event["station_type"] = json_event.pop("StationType")
+    event["faction_state"] = json_event.pop("StationFaction").pop("FactionState", "None")
 
     # Station economies
     default_economies = {name: 0.0 for name in economy_names}
     economies = {
         economy_json.pop("Name"): float(economy_json.pop("Proportion"))
-        for economy_json in json.pop("StationEconomies")
+        for economy_json in json_event.pop("StationEconomies")
     }
     event.update(default_economies)
     event.update(economies)
 
     # Station services
     default_services = {name: 0 for name in service_names}
-    services = {service_name: 1 for service_name in json.pop("StationServices")}
+    services = {service_name: 1 for service_name in json_event.pop("StationServices")}
     event.update(default_services)
     event.update(services)
+
+    # Remove unused fields
+    json_event.pop("SystemAddress", None)
+    json_event.pop("CockpitBreach", None)
+    json_event.pop("StationEconomy", None)
+    json_event.pop("DistFromStarLS", None)
+    json_event.pop("Wanted", None)
+    json_event.pop("ActiveFine", None)
+    json_event.pop("StarPos", None)
+    json_event.pop("event", None)
+    json_event.pop("Body", None)
+    json_event.pop("BodyType", None)
+    json_event.pop("StationState", None)
 
     return event
 
@@ -123,8 +135,8 @@ def combine_eddn_events(file: str):
 
     with open(file) as f:
         for line in f:
-            json = simplejson.loads(line)
-            schema, msg = json["$schemaRef"], json["message"]
+            json_event = json.loads(line)
+            schema, msg = json_event["$schemaRef"], json_event["message"]
 
             if "commodity" in schema:
                 commodity.append(parse_commodity(msg))
@@ -132,7 +144,7 @@ def combine_eddn_events(file: str):
                 journal.append(parse_journal(msg))
 
             if len(msg) != 0:
-                raise ValueError(f"Extra fields! {json}")
+                raise ValueError(f"Extra fields! {msg}")
 
     print(f"Read {len(commodity)} commodity and {len(journal)} journal events")
 
