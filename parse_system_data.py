@@ -98,7 +98,7 @@ def main():
 
                     if "rings" in body:
                         for ring in body["rings"]:
-                            ring_type = ring["type"].lower()
+                            ring_type = ring["type"]
 
                             if ring_type == "Rocky":
                                 rocky_rings += 1
