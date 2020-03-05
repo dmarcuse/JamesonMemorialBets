@@ -53,28 +53,61 @@ def parse_commodity(json: Dict) -> Dict:
 
 
 economy_names = [
-    "$economy_Agri",
-    "$economy_Colony",
-    "$economy_Extraction",
-    "$economy_HighTech",
-    "$economy_Industrial",
-    "$economy_Military",
-    "$economy_None",
-    "$economy_Refinery",
-    "$economy_Service",
-    "$economy_Terraforming",
-    "$economy_Tourism",
-    "$economy_Prison",
-    "$economy_Damaged",
-    "$economy_Rescue",
-    "$economy_Repair"
+    "$economy_Agri;",
+    "$economy_Colony;",
+    "$economy_Extraction;",
+    "$economy_HighTech;",
+    "$economy_Industrial;",
+    "$economy_Military;",
+    "$economy_None;",
+    "$economy_Refinery;",
+    "$economy_Service;",
+    "$economy_Terraforming;",
+    "$economy_Tourism;",
+    "$economy_Prison;",
+    "$economy_Damaged;",
+    "$economy_Rescue;",
+    "$economy_Repair;"
+]
+
+service_names = [
+    "Dock",
+    "Autodock",
+    "BlackMarket",
+    "Commodities",
+    "Contacts",
+    "Exploration",
+    "Initiatives",
+    "Missions",
+    "Outfitting",
+    "CrewLounge",
+    "Rearm",
+    "Refuel",
+    "Repair",
+    "Shipyard",
+    "Tuning",
+    "Workshop",
+    "MissionsGenerated",
+    "Facilitator",
+    "Research",
+    "FlightController",
+    "StationOperations",
+    "OnDockMission",
+    "Powerplay",
+    "SearchAndRescue"
 ]
 
 
 def parse_journal(json: Dict) -> Dict:
     event = parse_common(json)
-    event["station_allegiance"] = json.pop("StationAllegiance", "Independent")
 
+    # Miscellaneous station info
+    event["station_allegiance"] = json.pop("StationAllegiance", "Independent")
+    event["station_government"] = json.pop("StationGovernment")
+    event["station_type"] = json.pop("StationType")
+    event["faction_state"] = json.pop("StationFaction").pop("FactionState")
+
+    # Station economies
     default_economies = {name: 0.0 for name in economy_names}
     economies = {
         economy_json.pop("Name"): float(economy_json.pop("Proportion"))
@@ -83,11 +116,11 @@ def parse_journal(json: Dict) -> Dict:
     event.update(default_economies)
     event.update(economies)
 
-    # TODO: Station services
-
-    event["station_government"] = json.pop("StationGovernment")
-    event["station_type"] = json.pop("StationType")
-    event["faction_state"] = json.pop("StationFaction").pop("FactionState")
+    # Station services
+    default_services = {name: 0 for name in service_names}
+    services = {service_name: 1 for service_name in json.pop("StationServices")}
+    event.update(default_services)
+    event.update(services)
 
     return event
 
