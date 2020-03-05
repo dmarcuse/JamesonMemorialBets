@@ -4,16 +4,21 @@ import json
 import re
 from datetime import datetime
 from typing import Dict
+from itertools import groupby
+from csv import DictReader, DictWriter
 
 # some timestamps include milliseconds, which are removed with this regex
 TS_MILLIS_RE = re.compile(r"\.\d+Z")
+
+# max time difference between events to be paired
+MAX_EVENT_SEPARATION = 300
 
 
 def parse_common(json: Dict) -> Dict:
     """Parse fields common to both commodity and journal events."""
     return {
         "system_name": json.pop("StarSystem", None) or json.pop("systemName"),
-        "station_name": json.pop("StationName", None) or json.pop("stationName"),
+        "station": json.pop("StationName", None) or json.pop("stationName"),
         "market_id": json.pop("MarketID", None) or json.pop("marketId"),
         "timestamp": datetime.strptime(TS_MILLIS_RE.sub("Z", json.pop("timestamp")), "%Y-%m-%dT%H:%M:%SZ")  # ISO 8601
     }
@@ -85,7 +90,10 @@ service_names = [
     "StationOperations",
     "OnDockMission",
     "Powerplay",
-    "SearchAndRescue"
+    "SearchAndRescue",
+    "Shop",
+    "MaterialTrader",
+    "TechBroker"
 ]
 
 
@@ -129,6 +137,10 @@ def parse_journal(json_event: Dict) -> Dict:
     return event
 
 
+def timediff(a: datetime, b: datetime) -> float:
+    return abs((a - b).total_seconds())
+
+
 def combine_eddn_events(file: str):
     commodity = []
     journal = []
@@ -148,11 +160,45 @@ def combine_eddn_events(file: str):
 
     print(f"Read {len(commodity)} commodity and {len(journal)} journal events")
 
-    return []
+    # organize journal events into dictionary mapping system -> list of events
+    journal.sort(key=lambda e: e["system_name"])
+    journal_map = {}
+    for k, g in groupby(journal, lambda e: e["system_name"]):
+        journal_map[k] = sorted(g, key=lambda e: e["timestamp"])
+
+    # load static system data
+    with open("data/systems_populated.csv") as f:
+        systems = {system["name"]: system for system in DictReader(f)}
+
+    # combine all the data
+    merged = []
+    for c in commodity:
+        # select events from the same station that are close enough in time
+        matches = [
+            j for j in journal_map.get(c["system_name"], [])
+            if c["station"] == j["station"] and timediff(c["timestamp"], j["timestamp"]) <= MAX_EVENT_SEPARATION
+        ]
+
+        if matches:
+            closest_journal = min(matches, key=lambda j: timediff(j["timestamp"], c["timestamp"]))
+            merged += [
+                {
+                    **{k: v for k, v in c.items() if k != "commodities"},
+                    **item,
+                    **closest_journal,
+                    **systems[c["system_name"]]
+                } for item in c["commodities"]
+            ]
+
+    return merged
 
 
 def main():
     events = combine_eddn_events("data/events.jsonl")
+    with open("data/merged_data.csv", "w") as f:
+        w = DictWriter(f, events[0])
+        w.writeheader()
+        w.writerows(events)
 
 
 if __name__ == "__main__":

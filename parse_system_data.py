@@ -55,75 +55,80 @@ def stream_json(file: str) -> Generator[Dict, None, None]:
                 continue
 
 
-with open(CSV_FILE, "w") as csv_file:
-    field_names = [field.name for field in dataclasses.fields(System)]
-    csv_writer = DictWriter(csv_file, field_names)
-    csv_writer.writeheader()
+def main():
+    with open(CSV_FILE, "w") as csv_file:
+        field_names = [field.name for field in dataclasses.fields(System)]
+        csv_writer = DictWriter(csv_file, field_names)
+        csv_writer.writeheader()
 
-    for json_object in stream_json(SYSTEM_DATA):
+        for json_object in stream_json(SYSTEM_DATA):
 
-        stars = 0
+            stars = 0
 
-        metal_bodies = 0
-        rock_bodies = 0
-        ice_bodies = 0
-        gas_giants = 0
-        water_bodies = 0
+            metal_bodies = 0
+            rock_bodies = 0
+            ice_bodies = 0
+            gas_giants = 0
+            water_bodies = 0
 
-        rocky_rings = 0
-        icy_rings = 0
-        metal_rich_rings = 0
-        metallic_rings = 0
+            rocky_rings = 0
+            icy_rings = 0
+            metal_rich_rings = 0
+            metallic_rings = 0
 
-        if "bodies" in json_object:
-            for body in json_object["bodies"]:
-                if body["type"] == "Star":
-                    stars += 1
-                    continue
+            if "bodies" in json_object:
+                for body in json_object["bodies"]:
+                    if body["type"] == "Star":
+                        stars += 1
+                        continue
 
-                sub_type = body["subType"].lower()
+                    sub_type = body["subType"].lower()
 
-                if "metal" in sub_type:
-                    metal_bodies += 1
-                elif "rocky" in sub_type:
-                    rock_bodies += 1
-                elif "icy" in sub_type:
-                    ice_bodies += 1
-                elif "gas giant" in sub_type:
-                    gas_giants += 1
-                elif "water" in sub_type or "ammonia" in sub_type or "earthlike" in sub_type:
-                    water_bodies += 1
-                    continue
+                    if "metal" in sub_type:
+                        metal_bodies += 1
+                    elif "rocky" in sub_type:
+                        rock_bodies += 1
+                    elif "icy" in sub_type:
+                        ice_bodies += 1
+                    elif "gas giant" in sub_type:
+                        gas_giants += 1
+                    elif "water" in sub_type or "ammonia" in sub_type or "earthlike" in sub_type:
+                        water_bodies += 1
+                        continue
 
-                if "rings" in body:
-                    for ring in body["rings"]:
-                        ring_type = ring["type"].lower()
+                    if "rings" in body:
+                        for ring in body["rings"]:
+                            ring_type = ring["type"].lower()
 
-                        if ring_type == "Rocky":
-                            rocky_rings += 1
-                        elif ring_type == "Icy":
-                            icy_rings += 1
-                        elif ring_type == "Metal Rich":
-                            metal_rich_rings += 1
-                        elif ring_type == "Metallic":
-                            metallic_rings += 1
-                        else:
-                            continue
+                            if ring_type == "Rocky":
+                                rocky_rings += 1
+                            elif ring_type == "Icy":
+                                icy_rings += 1
+                            elif ring_type == "Metal Rich":
+                                metal_rich_rings += 1
+                            elif ring_type == "Metallic":
+                                metallic_rings += 1
+                            else:
+                                continue
 
-        system_info = System(
-            name=json_object["name"],
-            security=json_object["security"],
-            population=json_object["population"],
-            stars=stars,
-            metal_bodies=metal_bodies,
-            rock_bodies=rock_bodies,
-            ice_bodies=ice_bodies,
-            water_bodies=water_bodies,
-            gas_giants=gas_giants,
-            rocky_rings=rocky_rings,
-            icy_rings=icy_rings,
-            metal_rich_rings=metal_rich_rings,
-            metallic_rings=metallic_rings
-        )
+            system_info = System(
+                name=json_object["name"],
+                security=json_object["security"],
+                population=json_object["population"],
+                stars=stars,
+                metal_bodies=metal_bodies,
+                rock_bodies=rock_bodies,
+                ice_bodies=ice_bodies,
+                water_bodies=water_bodies,
+                gas_giants=gas_giants,
+                rocky_rings=rocky_rings,
+                icy_rings=icy_rings,
+                metal_rich_rings=metal_rich_rings,
+                metallic_rings=metallic_rings
+            )
 
-        csv_writer.writerow(dataclasses.asdict(system_info))
+            csv_writer.writerow(dataclasses.asdict(system_info))
+
+
+if __name__ == "__main__":
+    main()
