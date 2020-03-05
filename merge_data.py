@@ -1,21 +1,13 @@
 """Merges data from the different datasets into one CSV file."""
 
-import gzip
 import re
 from datetime import datetime
-from typing import Generator, Dict
+from typing import Dict
 
 import simplejson
 
 # some timestamps include milliseconds, which are removed with this regex
 TS_MILLIS_RE = re.compile(r"\.\d+Z")
-
-
-def stream_gzipped(file: str) -> Generator[str, None, None]:
-    """Read a gzipped text file line-by-line."""
-    with gzip.open(file) as f:
-        while (line := f.readline()) != b"":
-            yield line.decode()
 
 
 def parse_common(json: Dict) -> Dict:
