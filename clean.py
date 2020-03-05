@@ -9,8 +9,6 @@ CATEGORICAL_FEATURES = ["station_allegiance", "station_government", "station_typ
 
 def clean(data: pd.DataFrame) -> pd.DataFrame:
     """Clean the data to prepare it for training."""
-    data = pd.read_csv("data/merged_data.csv")
-
     # Calculate sell price factor.
     data["sell_factor"] = data["sell_price"] / data["mean_price"]
 
