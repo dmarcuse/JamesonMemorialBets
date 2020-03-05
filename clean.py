@@ -7,7 +7,8 @@ DROP_FEATURES = ["system_name", "station", "market_id", "timestamp", "buy_price"
 CATEGORICAL_FEATURES = ["station_allegiance", "station_government", "station_type", "faction_state", "security"]
 
 
-def main():
+def clean(data: pd.DataFrame) -> pd.DataFrame:
+    """Clean the data to prepare it for training."""
     data = pd.read_csv("data/merged_data.csv")
 
     # Calculate sell price factor.
@@ -19,8 +20,7 @@ def main():
     # One-hot encode categorical features.
     data = pd.get_dummies(data, columns=CATEGORICAL_FEATURES)
 
-    data.to_csv("data/cleaned_data.csv")
+    # Fill NaN values
+    data = data.fillna(0)
 
-
-if __name__ == "__main__":
-    main()
+    return data
