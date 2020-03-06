@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_absolute_error
 from sklearn.model_selection import train_test_split
 from tensorflow import keras
 from os import path
@@ -42,6 +42,12 @@ def train_model(x_train, y_train, x_test, y_test):
     return model
 
 
+def evaluate(expected, predictions, name):
+    print(name + ":")
+    print(f"\tr² score: {r2_score(expected, predictions)}")
+    print(f"\tmean absolute error: {mean_absolute_error(expected, predictions)}")
+
+
 def main():
     # Load and clean data.
     data = pd.read_csv("data/cleaned_data.csv")
@@ -62,9 +68,9 @@ def main():
         keras.models.save_model(model, MODEL_FILE)
 
     # Score the model.
-    print(f"r² score (training): {r2_score(y_train, model.predict(x_train))}")
-    print(f"r² score (testing): {r2_score(y_test, model.predict(x_test))}")
-    print(f"r² score (random predictions): {r2_score(y, [random() * 5 for _ in y])}")
+    evaluate(y_train, model.predict(x_train), "training")
+    evaluate(y_test, model.predict(x_test), "testing")
+    evaluate(y, [random() * 5 for _ in y], "random")
 
 
 if __name__ == "__main__":
