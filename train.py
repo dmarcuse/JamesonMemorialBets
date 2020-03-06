@@ -40,7 +40,8 @@ def main():
         x_train,
         y_train,
         epochs=NUM_EPOCHS,
-        verbose=1
+        verbose=1,
+        validation_data=(x_test, y_test)
     )
 
     # Score the model.
