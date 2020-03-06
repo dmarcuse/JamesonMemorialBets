@@ -10,7 +10,7 @@ NUM_EPOCHS = 20
 VALIDATION_SPLIT = 0.2
 
 # The name of the target feature.
-TARGET_FEATURE = "sell_difference"
+TARGET_FEATURE = "sell_factor"
 
 
 def main():
@@ -27,8 +27,9 @@ def main():
     # Create the model.
     model = keras.Sequential([
         keras.layers.Dense(x_train.shape[1], input_shape=(x_train.shape[1],)),  # Input layer
-        keras.layers.Dense(64, activation="relu"),  # Hidden layer
-        keras.layers.Dense(64, activation="relu"),  # Hidden layer
+        keras.layers.Dense(32, activation="relu"),  # Hidden layer
+        keras.layers.Dense(16, activation="relu"),  # Hidden layer
+        keras.layers.Dense(8, activation="relu"),  # Hidden layer
         keras.layers.Dense(1),  # Output layer
     ])
     model.compile(optimizer="adam", loss="mean_squared_error")
