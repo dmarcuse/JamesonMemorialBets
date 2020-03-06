@@ -183,10 +183,10 @@ def combine_eddn_events(file: str):
             closest_journal = min(matches, key=lambda j: timediff(j["timestamp"], c["timestamp"]))
             merged += [
                 {
+                    **systems[c["system_name"]],
                     **{k: v for k, v in c.items() if k != "commodities"},
                     **item,
                     **closest_journal,
-                    **systems[c["system_name"]]
                 } for item in c["commodities"]
             ]
 

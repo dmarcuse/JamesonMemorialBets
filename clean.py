@@ -3,9 +3,9 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-DROP_FEATURES = ["system_name", "station", "market_id", "timestamp", "buy_price", "name", "sell_price", "mean_price"]
+DROP_FEATURES = ["system_name", "station", "market_id", "timestamp", "buy_price", "sell_price", "mean_price"]
 
-CATEGORICAL_FEATURES = ["station_allegiance", "station_government", "station_type", "faction_state", "security"]
+CATEGORICAL_FEATURES = ["station_allegiance", "station_government", "station_type", "faction_state", "security", "name"]
 
 SCALE_FEATURES = [
     "demand", "demand_bracket", "stock", "stock_bracket", "population", "stars", "metal_bodies", "rock_bodies",
