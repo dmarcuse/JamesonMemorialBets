@@ -1,63 +1,43 @@
-import tensorflow as tf
-from tensorflow import keras
-
 import pandas as pd
-
-from sklearn.model_selection import train_test_split
-
-from clean import clean
-
-# how many epochs to train
-num_epochs = 20
-
-# how much of the training data to use for validation (0.2 = 20%)
-validation_split = 0.2
+from sklearn.model_selection import cross_val_score, KFold
+from tensorflow import keras
+from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
 
 
-def evaluate(target, predictions):
-    # TODO
-    pass
+def build_network(input_size: int):
+    # create model
+    model = keras.Sequential([
+        # input layer
+        keras.layers.Dense(
+            input_size,
+            input_shape=(input_size,),
+            activation="sigmoid"
+        ),
+        keras.layers.Dense(64, activation="relu"),  # hidden layer
+        keras.layers.Dense(1),  # output layer
+    ])
+    model.compile(optimizer="adam", loss="mean_squared_error")
+    print(model.summary())
+    return model
 
 
 def main():
     # load and clean data
-    data = clean(pd.read_csv("data/merged_data.csv"))
+    data = pd.read_csv("data/cleaned_data.csv")
 
     # select target and feature columns
     y = data["sell_factor"]
     x = data.drop("sell_factor", axis=1)
 
-    # split into training and testing set
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=validation_split)
-
-    # create model
-    model = keras.Sequential([
-        # input layer
-        keras.layers.Dense(
-            x_train.shape[1],
-            input_shape=(x_train.shape[1],),
-            activation="sigmoid"
-        ),
-        keras.layers.Dense(64, activation="relu"),  # hidden layer
-        keras.layers.Dense(1, activation="relu"),   # output layer
-    ])
-    model.compile(optimizer="sgd", loss="mean_squared_error")
-    print(model.summary())
-
-    # train model
-    model.fit(
-        x_train,
-        y_train,
-        epochs=num_epochs,
-        verbose=1,
-        validation_data=(x_test, y_test)
+    estimator = KerasRegressor(
+        build_fn=lambda: build_network(x.shape[1]),
+        epochs=20,
+        batch_size=5,
+        verbose=1
     )
-
-    # make predictions
-    print("TRAINING SET:")
-    evaluate(y_train, model.predict(x_train))
-    print("VALIDATION SET:")
-    evaluate(y_test, model.predict(y_test))
+    kfold = KFold(n_splits=10, shuffle=True)
+    results = cross_val_score(estimator, x, y, scoring="r2", n_jobs=-1, cv=kfold)
+    print(f"r^2 Score: {results.mean()}")
 
 
 if __name__ == "__main__":
