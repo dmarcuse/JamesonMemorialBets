@@ -35,8 +35,8 @@ def main():
         batch_size=5,
         verbose=1
     )
-    kfold = KFold(n_splits=10, shuffle=True)
-    results = cross_val_score(estimator, x, y, scoring="r2", n_jobs=-1, cv=kfold)
+    kfold = KFold(n_splits=5, shuffle=True)
+    results = cross_val_score(estimator, x, y, scoring="r2", n_jobs=1, cv=kfold)
     print(f"r^2 Score: {results.mean()}")
 
 
