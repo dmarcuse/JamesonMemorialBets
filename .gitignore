@@ -1,3 +1,4 @@
 .idea/
 __pycache__/
-
+data/cleaned_data.csv
+data/merged_data.csv
